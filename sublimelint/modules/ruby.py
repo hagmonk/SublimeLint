@@ -11,7 +11,7 @@ def check(codeString, filename):
         info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         info.wShowWindow = subprocess.SW_HIDE
 
-    process = subprocess.Popen(('ruby', '-wc'),
+    process = subprocess.Popen(('env', 'ruby', '-wc'),
                   stdin=subprocess.PIPE,
                   stdout=subprocess.PIPE,
                   stderr=subprocess.STDOUT,
@@ -37,16 +37,17 @@ def run(code, view, filename='untitled'):
     lines = set()
     underline = []  # leave this here for compatibility with original plugin
 
-    errorMessages = {}
+    messages = {"error": {}, "warning": {}}
 
-    def addMessage(lineno, message):
+    def addMessage(lineno, message, message_type):
         message = str(message)
-        if lineno in errorMessages:
-            errorMessages[lineno].append(message)
+        if lineno in messages[message_type]:
+            messages[message_type][lineno].append(message)
         else:
-            errorMessages[lineno] = [message]
+            messages[message_type][lineno] = [message]
 
     for line in errors.splitlines():
+        print line
         match = re.match(r'^.+:(?P<line>\d+):\s+(?P<error>.+)', line)
 
         if match:
@@ -54,6 +55,12 @@ def run(code, view, filename='untitled'):
 
             lineno = int(line) - 1
             lines.add(lineno)
-            addMessage(lineno, error)
 
-    return lines, underline, [], [], errorMessages, {}, {}
+            print error
+            if (re.match(r'^warning', error) != None):
+                addMessage(lineno, error, "warning")
+            else:
+                addMessage(lineno, error, "error")
+
+    print messages
+    return lines, underline, [], [], messages["error"], {}, messages["warning"]
