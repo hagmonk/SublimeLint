@@ -47,7 +47,6 @@ def run(code, view, filename='untitled'):
             messages[message_type][lineno] = [message]
 
     for line in errors.splitlines():
-        print line
         match = re.match(r'^.+:(?P<line>\d+):\s+(?P<error>.+)', line)
 
         if match:
@@ -56,11 +55,9 @@ def run(code, view, filename='untitled'):
             lineno = int(line) - 1
             lines.add(lineno)
 
-            print error
             if (re.match(r'^warning', error) != None):
                 addMessage(lineno, error, "warning")
             else:
                 addMessage(lineno, error, "error")
 
-    print messages
     return lines, underline, [], [], messages["error"], {}, messages["warning"]
