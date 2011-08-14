@@ -12,14 +12,14 @@ def check(codeString, filename):
         info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         info.wShowWindow = subprocess.SW_HIDE
 
-    process = subprocess.Popen(('jshint', filename),
+    jshint_path = os.path.join(sublime.packages_path(), 'SublimeLint', 'jshint', 'jshint')
+    process = subprocess.Popen(jshint_path,
                                 stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT,
                                 startupinfo=info)
 
-    lines = process.stdout.readlines()
-    return lines
+    return process.communicate(codeString)[0]
 
 
 # start sublimelint jshint plugin
@@ -81,8 +81,8 @@ def run(code, view, filename='untitled'):
         for start, end in results:
             underlineRange(lineno, start + offset, end - start)
 
-    for line in errors:
-        match = re.match(r'.* line (?P<line>\d+), col (?P<near>.+?)?, (?P<error>.+?)\.', line)
+    for line in errors.splitlines():
+        match = re.match(r'(?P<line>\d+),(?P<near>.+?)?: (?P<error>.+?)\.', line)
 
         if match:
             error, line = match.group('error'), match.group('line')
@@ -95,5 +95,7 @@ def run(code, view, filename='untitled'):
 
             lines.add(lineno)
             addMessage(lineno, error)
+
+    # def add_lint_marks(view, lines, error_underlines, violation_underlines, warning_underlines):
 
     return lines, underline, [], [], errorMessages, {}, {}
