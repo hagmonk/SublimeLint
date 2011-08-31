@@ -232,10 +232,13 @@ def run_once(linter, view):
         filename = view.file_name()  # os.path.split(view.file_name())[-1]
     else:
         filename = 'untitled'
-    lines, error_underlines, violation_underlines, warning_underlines, ERRORS[vid], VIOLATIONS[vid], WARNINGS[vid] = linter.run(text, view, filename)
-    add_lint_marks(view, lines, error_underlines, violation_underlines, warning_underlines)
-    update_statusbar(view)
-    return len(lines)
+    if linter != None:
+        lines, error_underlines, violation_underlines, warning_underlines, ERRORS[vid], VIOLATIONS[vid], WARNINGS[vid] = linter.run(text, view, filename)
+        add_lint_marks(view, lines, error_underlines, violation_underlines, warning_underlines)
+        update_statusbar(view)
+        return len(lines)
+    else:
+        return 0
 
 
 def add_lint_marks(view, lines, error_underlines, violation_underlines, warning_underlines):
@@ -249,7 +252,7 @@ def add_lint_marks(view, lines, error_underlines, violation_underlines, warning_
     if error_underlines:
         view.add_regions('lint-underline-illegal', error_underlines, 'invalid.illegal', sublime.DRAW_EMPTY_AS_OVERWRITE)
     if lines:
-        fill_outlines = view.settings().get('sublimelint_fill_outlines', True)
+        fill_outlines = view.settings().get('sublimelint_fill_outlines', False)
         gutter_mark = 'cross' if view.settings().get('sublimelint_gutter_marks', True) else ''
         outlines = {'warning': [], 'violation': [], 'illegal': []}
         for line in lines:
